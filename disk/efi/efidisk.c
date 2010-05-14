@@ -26,6 +26,7 @@
 #include <grub/efi/api.h>
 #include <grub/efi/efi.h>
 #include <grub/efi/disk.h>
+#include <grub/env.h>
 
 struct grub_efidisk_data
 {
@@ -814,6 +815,48 @@ grub_efidisk_get_device_name (grub_efi_handle_t *handle)
 	  return 0;
 	}
 
+      {
+        // This block is a temporary workaround used by Chrome OS. We set
+        // some variables that we can use in the grub.cfg file to ensure that
+        // we get the kernel and rootfs from the boot device, regardless of
+        // which device that is.
+        char *tmpbuf = grub_malloc (grub_strlen (parent->name) + 5);
+        if (! tmpbuf)
+	{
+	  grub_free (device_name);
+	  grub_free (partition_name);
+	  grub_disk_close (parent);
+	  return 0;
+	}
+
+        grub_sprintf (tmpbuf, "(%s,3)", parent->name);
+        grub_env_set ("grubpartA", tmpbuf);
+        grub_env_export ("grubpartA");
+        grub_sprintf (tmpbuf, "(%s,5)", parent->name);
+        grub_env_set ("grubpartB", tmpbuf);
+        grub_env_export ("grubpartB");
+        grub_free (tmpbuf);
+
+        // Translate hd0 to sda, hd1 to sdb, etc. parent->name is always
+        // either "fdN", "hdN", or "cdN". This trick won't work if N is > 9.
+        int index = parent->name[2] - '0';
+        // The Chrome OS BIOS doesn't enumerate the hard disk in recovery
+        // mode, so the first removable drive is hd0, not hd1. Linux always
+        // sees it though.
+        struct grub_efidisk_data *d = parent->data;
+        if (d->block_io->media->removable_media)
+          index++;
+
+        char devname[] = "sdXN";
+        devname[2] = 'a' + index;
+        devname[3] = '3';
+        grub_env_set ("linuxpartA", devname);
+        grub_env_export ("linuxpartA");
+        devname[3] = '5';
+        grub_env_set ("linuxpartB", devname);
+        grub_env_export ("linuxpartB");
+      }
+      
       grub_sprintf (device_name, "%s,%s", parent->name, partition_name);
       grub_free (partition_name);
       grub_disk_close (parent);
