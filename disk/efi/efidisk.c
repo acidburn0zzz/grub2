@@ -840,12 +840,6 @@ grub_efidisk_get_device_name (grub_efi_handle_t *handle)
         // Translate hd0 to sda, hd1 to sdb, etc. parent->name is always
         // either "fdN", "hdN", or "cdN". This trick won't work if N is > 9.
         int index = parent->name[2] - '0';
-        // The Chrome OS BIOS doesn't enumerate the hard disk in recovery
-        // mode, so the first removable drive is hd0, not hd1. Linux always
-        // sees it though.
-        struct grub_efidisk_data *d = parent->data;
-        if (d->block_io->media->removable_media)
-          index++;
 
         char devname[] = "sdXN";
         devname[2] = 'a' + index;
