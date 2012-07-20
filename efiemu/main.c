@@ -275,12 +275,10 @@ grub_efiemu_autocore (void)
 grub_err_t
 grub_efiemu_prepare (void)
 {
-  grub_err_t err;
-
   grub_dprintf ("efiemu", "Preparing %d-bit efiemu\n",
 		8 * grub_efiemu_sizeof_uintn_t ());
 
-  err = grub_efiemu_autocore ();
+  grub_efiemu_autocore ();
 
   /* Create NVRAM if not yet done. */
   grub_efiemu_pnvram ();

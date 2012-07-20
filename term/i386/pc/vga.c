@@ -188,7 +188,6 @@ static void
 write_char (void)
 {
   struct colored_char *p = text_buf + xpos + ypos * TEXT_WIDTH;
-  struct grub_font_glyph *glyph;
   unsigned char *mem_base;
   unsigned plane;
 
@@ -197,17 +196,16 @@ write_char (void)
   p -= p->index;
 
   /* Get glyph for character.  */
-  glyph = grub_font_get_glyph (font, p->code);
+  grub_font_get_glyph (font, p->code);
 
   for (plane = 0x01; plane <= 0x08; plane <<= 1)
     {
       unsigned y;
-      unsigned offset;
       unsigned char *mem;
 
       set_map_mask (plane);
 
-      for (y = 0, offset = 0, mem = mem_base;
+      for (y = 0, mem = mem_base;
 	   y < CHAR_HEIGHT;
 	   y++, mem += TEXT_WIDTH)
 	{
@@ -327,11 +325,10 @@ grub_vga_putchar (grub_uint32_t c)
     }
   else
     {
-      struct grub_font_glyph *glyph;
       struct colored_char *p;
       unsigned char_width = 1;
 
-      glyph = grub_font_get_glyph(font, c);
+      grub_font_get_glyph(font, c);
 
       if (xpos + char_width > TEXT_WIDTH)
 	grub_putchar ('\n');

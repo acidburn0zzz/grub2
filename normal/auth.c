@@ -207,7 +207,6 @@ grub_auth_check_authentication (const char *userlist)
 {
   char login[1024];
   struct grub_auth_user *cur = NULL;
-  grub_err_t err;
 
   auto int hook (grub_list_t item);
   int hook (grub_list_t item)
@@ -245,11 +244,11 @@ grub_auth_check_authentication (const char *userlist)
 	return GRUB_ACCESS_DENIED;
 
       /* Display any of available authentication schemes.  */
-      err = cur->callback (login, 0);
+      cur->callback (login, 0);
 
       return GRUB_ACCESS_DENIED;
     }
-  err = cur->callback (login, cur->arg);
+  cur->callback (login, cur->arg);
   if (is_authenticated (userlist))
     return GRUB_ERR_NONE;
   return GRUB_ACCESS_DENIED;
