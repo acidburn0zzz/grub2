@@ -37,6 +37,15 @@
 #define GRUB_LINUX_CL_OFFSET		0x1000
 #define GRUB_LINUX_CL_END_OFFSET	0x2000
 
+/* Define the address start range for EFI pages. Some platforms have something
+ * else taking address 0x100000, so checking a range of addresses will allow
+ * these platforms to boot. This is fixed in a different way in upstreamed
+ * grub2.
+ * TODO(shawnn): Upgrade to newer version of grub2. */
+#define GRUB_EFI_PAGE_START_OFFSET        0x100000
+#define GRUB_EFI_PAGE_END_OFFSET          0x200000
+#define GRUB_EFI_PAGE_INCREMENT_OFFSET    0x010000
+
 #define NEXT_MEMORY_DESCRIPTOR(desc, size)      \
   ((grub_efi_memory_descriptor_t *) ((char *) (desc) + (size)))
 
@@ -165,6 +174,7 @@ allocate_pages (grub_size_t prot_size)
   grub_efi_uintn_t mmap_size, tmp_mmap_size;
   grub_efi_memory_descriptor_t *desc;
   grub_size_t real_size;
+  grub_addr_t addr;
 
   /* Make sure that each size is aligned to a page boundary.  */
   real_size = GRUB_LINUX_CL_END_OFFSET;
@@ -207,7 +217,6 @@ allocate_pages (grub_size_t prot_size)
 	  && desc->num_pages >= real_mode_pages)
 	{
 	  grub_efi_physical_address_t physical_end;
-	  grub_efi_physical_address_t addr;
 
 	  physical_end = desc->physical_start + (desc->num_pages << 12);
 	  if (physical_end > 0x90000)
@@ -238,10 +247,17 @@ allocate_pages (grub_size_t prot_size)
     }
 
   mmap_buf = (void *) ((char *) real_mode_mem + real_size);
-
   /* Next, find free pages for the protected mode code.  */
-  /* XXX what happens if anything is using this address?  */
-  prot_mode_mem = grub_efi_allocate_pages (0x100000, prot_mode_pages + 1);
+  /* Scan range for free address  */
+  for (addr =  GRUB_EFI_PAGE_START_OFFSET;
+       addr <  GRUB_EFI_PAGE_END_OFFSET;
+       addr += GRUB_EFI_PAGE_INCREMENT_OFFSET)
+    {
+      prot_mode_mem = grub_efi_allocate_pages (addr, prot_mode_pages + 1);
+      if (prot_mode_mem)
+        break;
+    }
+
   if (! prot_mode_mem)
     {
       grub_error (GRUB_ERR_OUT_OF_MEMORY,
