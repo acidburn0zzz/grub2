@@ -3,7 +3,7 @@
 
 COMMON_ASFLAGS = -nostdinc -fno-builtin -m64
 COMMON_CFLAGS = -fno-builtin -m64
-COMMON_LDFLAGS = -melf_x86_64 -nostdlib
+COMMON_LDFLAGS = -Wl,-melf_x86_64 -nostdlib
 
 # Used by various components.  These rules need to precede them.
 script/sh/lexer.c_DEPENDENCIES = grub_script.tab.h
@@ -3116,4 +3116,3 @@ grub-mkimage: $(grub_mkimage_DEPENDENCIES) $(grub_mkimage_OBJECTS)
 
 grub-mkdevicemap: $(grub_mkdevicemap_DEPENDENCIES) $(grub_mkdevicemap_OBJECTS)
 	$(CC) -o $@ $(grub_mkdevicemap_OBJECTS) $(LDFLAGS) $(grub_mkdevicemap_LDFLAGS)
-
