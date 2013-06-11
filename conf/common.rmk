@@ -362,7 +362,7 @@ pkglib_MODULES += minicmd.mod extcmd.mod hello.mod handler.mod	\
 	read.mod sleep.mod loadenv.mod crc.mod parttool.mod	\
 	msdospart.mod memrw.mod normal.mod sh.mod 		\
 	gptsync.mod true.mod probe.mod password.mod		\
-	keystatus.mod
+	keystatus.mod gptpriority.mod
 
 # For password.mod.
 password_mod_SOURCES = commands/password.c
@@ -433,6 +433,11 @@ help_mod_LDFLAGS = $(COMMON_LDFLAGS)
 search_mod_SOURCES = commands/search.c
 search_mod_CFLAGS = $(COMMON_CFLAGS)
 search_mod_LDFLAGS = $(COMMON_LDFLAGS)
+
+#For gptpriority.mod.
+gptpriority_mod_SOURCES = commands/gptpriority.c
+gptpriority_mod_CFLAGS = $(COMMON_CFLAGS)
+gptpriority_mod_LDFLAGS = $(COMMON_LDFLAGS)
 
 # For test.mod.
 test_mod_SOURCES = commands/test.c
