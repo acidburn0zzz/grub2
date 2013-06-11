@@ -837,6 +837,9 @@ grub_efidisk_get_device_name (grub_efi_handle_t *handle)
         grub_env_export ("grubpartB");
         grub_free (tmpbuf);
 
+        grub_env_set ("grubdisk", parent->name);
+        grub_env_export ("grubdisk");
+
         // Translate hd0 to sda, hd1 to sdb, etc. parent->name is always
         // either "fdN", "hdN", or "cdN". This trick won't work if N is > 9.
         int index = parent->name[2] - '0';
