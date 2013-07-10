@@ -4078,7 +4078,7 @@ pkglib_MODULES += minicmd.mod extcmd.mod hello.mod handler.mod	\
 	read.mod sleep.mod loadenv.mod crc.mod parttool.mod	\
 	msdospart.mod memrw.mod normal.mod sh.mod 		\
 	gptsync.mod true.mod probe.mod password.mod		\
-	keystatus.mod
+	keystatus.mod gptpriority.mod
 
 # For password.mod.
 password_mod_SOURCES = commands/password.c
@@ -5411,6 +5411,99 @@ handler-search_mod-commands_search.lst: commands/search.c $(commands/search.c_DE
 
 search_mod_CFLAGS = $(COMMON_CFLAGS)
 search_mod_LDFLAGS = $(COMMON_LDFLAGS)
+
+#For gptpriority.mod.
+gptpriority_mod_SOURCES = commands/gptpriority.c
+
+clean-module-gptpriority.mod.1:
+	rm -f gptpriority.mod mod-gptpriority.o mod-gptpriority.c pre-gptpriority.o gptpriority_mod-commands_gptpriority.o und-gptpriority.lst
+
+CLEAN_MODULE_TARGETS += clean-module-gptpriority.mod.1
+
+ifneq ($(gptpriority_mod_EXPORTS),no)
+clean-module-gptpriority.mod-symbol.1:
+	rm -f def-gptpriority.lst
+
+CLEAN_MODULE_TARGETS += clean-module-gptpriority.mod-symbol.1
+DEFSYMFILES += def-gptpriority.lst
+endif
+mostlyclean-module-gptpriority.mod.1:
+	rm -f gptpriority_mod-commands_gptpriority.d
+
+MOSTLYCLEAN_MODULE_TARGETS += mostlyclean-module-gptpriority.mod.1
+UNDSYMFILES += und-gptpriority.lst
+
+ifneq ($(TARGET_APPLE_CC),1)
+gptpriority.mod: pre-gptpriority.o mod-gptpriority.o $(TARGET_OBJ2ELF)
+	-rm -f $@
+	$(TARGET_CC) $(gptpriority_mod_LDFLAGS) $(TARGET_LDFLAGS) -Wl,-r,-d -o $@ pre-gptpriority.o mod-gptpriority.o
+	if test ! -z "$(TARGET_OBJ2ELF)"; then ./$(TARGET_OBJ2ELF) $@ || (rm -f $@; exit 1); fi
+	$(STRIP) --strip-unneeded -K grub_mod_init -K grub_mod_fini -K _grub_mod_init -K _grub_mod_fini -R .note -R .comment $@
+else
+gptpriority.mod: pre-gptpriority.o mod-gptpriority.o $(TARGET_OBJ2ELF)
+	-rm -f $@
+	-rm -f $@.bin
+	$(TARGET_CC) $(gptpriority_mod_LDFLAGS) $(TARGET_LDFLAGS) -Wl,-r,-d -o $@.bin pre-gptpriority.o mod-gptpriority.o
+	$(OBJCONV) -f$(TARGET_MODULE_FORMAT) -nr:_grub_mod_init:grub_mod_init -nr:_grub_mod_fini:grub_mod_fini -wd1106 -nu -nd $@.bin $@
+	-rm -f $@.bin
+endif
+
+pre-gptpriority.o: $(gptpriority_mod_DEPENDENCIES) gptpriority_mod-commands_gptpriority.o
+	-rm -f $@
+	$(TARGET_CC) $(gptpriority_mod_LDFLAGS) $(TARGET_LDFLAGS) -Wl,-r,-d -o $@ gptpriority_mod-commands_gptpriority.o
+
+mod-gptpriority.o: mod-gptpriority.c
+	$(TARGET_CC) $(TARGET_CPPFLAGS) $(TARGET_CFLAGS) $(gptpriority_mod_CFLAGS) -c -o $@ $<
+
+mod-gptpriority.c: $(builddir)/moddep.lst $(srcdir)/genmodsrc.sh
+	sh $(srcdir)/genmodsrc.sh 'gptpriority' $< > $@ || (rm -f $@; exit 1)
+
+ifneq ($(gptpriority_mod_EXPORTS),no)
+ifneq ($(TARGET_APPLE_CC),1)
+def-gptpriority.lst: pre-gptpriority.o
+	$(NM) -g --defined-only -P -p $< | sed 's/^\([^ ]*\).*/\1 gptpriority/' > $@
+else
+def-gptpriority.lst: pre-gptpriority.o
+	$(NM) -g -P -p $< | grep -E '^[a-zA-Z0-9_]* [TDS]'  | sed 's/^\([^ ]*\).*/\1 gptpriority/' > $@
+endif
+endif
+
+und-gptpriority.lst: pre-gptpriority.o
+	echo 'gptpriority' > $@
+	$(NM) -u -P -p $< | cut -f1 -d' ' >> $@
+
+gptpriority_mod-commands_gptpriority.o: commands/gptpriority.c $(commands/gptpriority.c_DEPENDENCIES)
+	$(TARGET_CC) -Icommands -I$(srcdir)/commands $(TARGET_CPPFLAGS)  $(TARGET_CFLAGS) $(gptpriority_mod_CFLAGS) -MD -c -o $@ $<
+-include gptpriority_mod-commands_gptpriority.d
+
+clean-module-gptpriority_mod-commands_gptpriority-extra.1:
+	rm -f cmd-gptpriority_mod-commands_gptpriority.lst fs-gptpriority_mod-commands_gptpriority.lst partmap-gptpriority_mod-commands_gptpriority.lst handler-gptpriority_mod-commands_gptpriority.lst parttool-gptpriority_mod-commands_gptpriority.lst
+
+CLEAN_MODULE_TARGETS += clean-module-gptpriority_mod-commands_gptpriority-extra.1
+
+COMMANDFILES += cmd-gptpriority_mod-commands_gptpriority.lst
+FSFILES += fs-gptpriority_mod-commands_gptpriority.lst
+PARTTOOLFILES += parttool-gptpriority_mod-commands_gptpriority.lst
+PARTMAPFILES += partmap-gptpriority_mod-commands_gptpriority.lst
+HANDLERFILES += handler-gptpriority_mod-commands_gptpriority.lst
+
+cmd-gptpriority_mod-commands_gptpriority.lst: commands/gptpriority.c $(commands/gptpriority.c_DEPENDENCIES) gencmdlist.sh
+	set -e; 	  $(TARGET_CC) -Icommands -I$(srcdir)/commands $(TARGET_CPPFLAGS)  $(TARGET_CFLAGS) $(gptpriority_mod_CFLAGS) -E $< 	  | sh $(srcdir)/gencmdlist.sh gptpriority > $@ || (rm -f $@; exit 1)
+
+fs-gptpriority_mod-commands_gptpriority.lst: commands/gptpriority.c $(commands/gptpriority.c_DEPENDENCIES) genfslist.sh
+	set -e; 	  $(TARGET_CC) -Icommands -I$(srcdir)/commands $(TARGET_CPPFLAGS)  $(TARGET_CFLAGS) $(gptpriority_mod_CFLAGS) -E $< 	  | sh $(srcdir)/genfslist.sh gptpriority > $@ || (rm -f $@; exit 1)
+
+parttool-gptpriority_mod-commands_gptpriority.lst: commands/gptpriority.c $(commands/gptpriority.c_DEPENDENCIES) genparttoollist.sh
+	set -e; 	  $(TARGET_CC) -Icommands -I$(srcdir)/commands $(TARGET_CPPFLAGS)  $(TARGET_CFLAGS) $(gptpriority_mod_CFLAGS) -E $< 	  | sh $(srcdir)/genparttoollist.sh gptpriority > $@ || (rm -f $@; exit 1)
+
+partmap-gptpriority_mod-commands_gptpriority.lst: commands/gptpriority.c $(commands/gptpriority.c_DEPENDENCIES) genpartmaplist.sh
+	set -e; 	  $(TARGET_CC) -Icommands -I$(srcdir)/commands $(TARGET_CPPFLAGS)  $(TARGET_CFLAGS) $(gptpriority_mod_CFLAGS) -E $< 	  | sh $(srcdir)/genpartmaplist.sh gptpriority > $@ || (rm -f $@; exit 1)
+
+handler-gptpriority_mod-commands_gptpriority.lst: commands/gptpriority.c $(commands/gptpriority.c_DEPENDENCIES) genhandlerlist.sh
+	set -e; 	  $(TARGET_CC) -Icommands -I$(srcdir)/commands $(TARGET_CPPFLAGS)  $(TARGET_CFLAGS) $(gptpriority_mod_CFLAGS) -E $< 	  | sh $(srcdir)/genhandlerlist.sh gptpriority > $@ || (rm -f $@; exit 1)
+
+gptpriority_mod_CFLAGS = $(COMMON_CFLAGS)
+gptpriority_mod_LDFLAGS = $(COMMON_LDFLAGS)
 
 # For test.mod.
 test_mod_SOURCES = commands/test.c

@@ -55,6 +55,7 @@ commands/crc.c
 commands/date.c
 commands/echo.c
 commands/extcmd.c
+commands/gptpriority.c
 commands/gptsync.c
 commands/halt.c
 commands/handler.c
