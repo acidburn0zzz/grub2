@@ -1,6 +1,6 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2002,2003,2005,2006,2007,2008,2009  Free Software Foundation, Inc.
+ *  Copyright (C) 2002,2003,2005,2006,2007,2008,2009,2010  Free Software Foundation, Inc.
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,10 +18,12 @@
 
 #include <config.h>
 
+#include <errno.h>
 #include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -30,14 +32,19 @@
 #include <time.h>
 
 #include <grub/kernel.h>
+#include <grub/dl.h>
 #include <grub/misc.h>
 #include <grub/cache.h>
+#include <grub/emu/misc.h>
 #include <grub/util/misc.h>
 #include <grub/mm.h>
 #include <grub/term.h>
 #include <grub/time.h>
-#include <grub/machine/time.h>
-#include <grub/machine/machine.h>
+#include <grub/i18n.h>
+#include <grub/script_sh.h>
+
+#define ENABLE_RELOCATABLE 0
+#include "progname.h"
 
 /* Include malloc.h, only if memalign is available. It is known that
    memalign is declared in malloc.h in all systems, if present.  */
@@ -48,53 +55,10 @@
 #ifdef __MINGW32__
 #include <windows.h>
 #include <winioctl.h>
+#include "dirname.h"
 #endif
 
-char *progname = 0;
-int verbosity = 0;
-
-void
-grub_util_warn (const char *fmt, ...)
-{
-  va_list ap;
-
-  fprintf (stderr, "%s: warn: ", progname);
-  va_start (ap, fmt);
-  vfprintf (stderr, fmt, ap);
-  va_end (ap);
-  fputc ('\n', stderr);
-  fflush (stderr);
-}
-
-void
-grub_util_info (const char *fmt, ...)
-{
-  if (verbosity > 0)
-    {
-      va_list ap;
-
-      fprintf (stderr, "%s: info: ", progname);
-      va_start (ap, fmt);
-      vfprintf (stderr, fmt, ap);
-      va_end (ap);
-      fputc ('\n', stderr);
-      fflush (stderr);
-    }
-}
-
-void
-grub_util_error (const char *fmt, ...)
-{
-  va_list ap;
-
-  fprintf (stderr, "%s: error: ", progname);
-  va_start (ap, fmt);
-  vfprintf (stderr, fmt, ap);
-  va_end (ap);
-  fputc ('\n', stderr);
-  exit (1);
-}
-
+#ifdef GRUB_UTIL
 int
 grub_err_printf (const char *fmt, ...)
 {
@@ -107,41 +71,7 @@ grub_err_printf (const char *fmt, ...)
 
   return ret;
 }
-
-void *
-xmalloc (size_t size)
-{
-  void *p;
-
-  p = malloc (size);
-  if (! p)
-    grub_util_error ("out of memory");
-
-  return p;
-}
-
-void *
-xrealloc (void *ptr, size_t size)
-{
-  ptr = realloc (ptr, size);
-  if (! ptr)
-    grub_util_error ("out of memory");
-
-  return ptr;
-}
-
-char *
-xstrdup (const char *str)
-{
-  size_t len;
-  char *dup;
-
-  len = strlen (str);
-  dup = (char *) xmalloc (len + 1);
-  memcpy (dup, str, len + 1);
-
-  return dup;
-}
+#endif
 
 char *
 grub_util_get_path (const char *dir, const char *file)
@@ -154,20 +84,6 @@ grub_util_get_path (const char *dir, const char *file)
 }
 
 size_t
-grub_util_get_fp_size (FILE *fp)
-{
-  struct stat st;
-
-  if (fflush (fp) == EOF)
-    grub_util_error ("fflush failed");
-
-  if (fstat (fileno (fp), &st) == -1)
-    grub_util_error ("fstat failed");
-
-  return st.st_size;
-}
-
-size_t
 grub_util_get_image_size (const char *path)
 {
   struct stat st;
@@ -175,19 +91,9 @@ grub_util_get_image_size (const char *path)
   grub_util_info ("getting the size of %s", path);
 
   if (stat (path, &st) == -1)
-    grub_util_error ("cannot stat %s", path);
+    grub_util_error (_("cannot stat `%s': %s"), path, strerror (errno));
 
   return st.st_size;
-}
-
-void
-grub_util_read_at (void *img, size_t size, off_t offset, FILE *fp)
-{
-  if (fseeko (fp, offset, SEEK_SET) == -1)
-    grub_util_error ("seek failed");
-
-  if (fread (img, 1, size, fp) != size)
-    grub_util_error ("read failed");
 }
 
 char *
@@ -204,9 +110,12 @@ grub_util_read_image (const char *path)
 
   fp = fopen (path, "rb");
   if (! fp)
-    grub_util_error ("cannot open %s", path);
+    grub_util_error (_("cannot open `%s': %s"), path,
+		     strerror (errno));
 
-  grub_util_read_at (img, size, 0, fp);
+  if (fread (img, 1, size, fp) != size)
+    grub_util_error (_("cannot read `%s': %s"), path,
+		     strerror (errno));
 
   fclose (fp);
 
@@ -225,80 +134,117 @@ grub_util_load_image (const char *path, char *buf)
 
   fp = fopen (path, "rb");
   if (! fp)
-    grub_util_error ("cannot open %s", path);
+    grub_util_error (_("cannot open `%s': %s"), path,
+		     strerror (errno));
 
   if (fread (buf, 1, size, fp) != size)
-    grub_util_error ("cannot read %s", path);
+    grub_util_error (_("cannot read `%s': %s"), path,
+		     strerror (errno));
 
   fclose (fp);
 }
 
 void
-grub_util_write_image_at (const void *img, size_t size, off_t offset, FILE *out)
+grub_util_write_image_at (const void *img, size_t size, off_t offset, FILE *out,
+			  const char *name)
 {
-  grub_util_info ("writing 0x%x bytes at offset 0x%x", size, offset);
+  grub_util_info ("writing 0x%" PRIxGRUB_SIZE " bytes at offset 0x%llx",
+		  size, (unsigned long long) offset);
   if (fseeko (out, offset, SEEK_SET) == -1)
-    grub_util_error ("seek failed");
+    grub_util_error (_("cannot seek `%s': %s"),
+		     name, strerror (errno));
   if (fwrite (img, 1, size, out) != size)
-    grub_util_error ("write failed");
+    grub_util_error (_("cannot write to `%s': %s"),
+		     name, strerror (errno));
 }
 
 void
-grub_util_write_image (const char *img, size_t size, FILE *out)
+grub_util_write_image (const char *img, size_t size, FILE *out,
+		       const char *name)
 {
-  grub_util_info ("writing 0x%x bytes", size);
+  grub_util_info ("writing 0x%" PRIxGRUB_SIZE " bytes", size);
   if (fwrite (img, 1, size, out) != size)
-    grub_util_error ("write failed");
+    {
+      if (!name)
+	grub_util_error (_("cannot write to the stdout: %s"),
+			 strerror (errno));
+      else
+	grub_util_error (_("cannot write to `%s': %s"),
+			 name, strerror (errno));
+    }
 }
 
-void *
-grub_malloc (grub_size_t size)
+grub_err_t
+grub_script_execute_cmdline (struct grub_script_cmd *cmd __attribute__ ((unused)))
 {
-  return xmalloc (size);
+  return 0;
 }
 
-void *
-grub_zalloc (grub_size_t size)
+grub_err_t
+grub_script_execute_cmdlist (struct grub_script_cmd *cmd __attribute__ ((unused)))
 {
-  void *ret;
+  return 0;
+}
 
-  ret = xmalloc (size);
-  memset (ret, 0, size);
-  return ret;
+grub_err_t
+grub_script_execute_cmdif (struct grub_script_cmd *cmd __attribute__ ((unused)))
+{
+  return 0;
+}
+
+grub_err_t
+grub_script_execute_cmdfor (struct grub_script_cmd *cmd __attribute__ ((unused)))
+{
+  return 0;
+}
+
+grub_err_t
+grub_script_execute_cmdwhile (struct grub_script_cmd *cmd __attribute__ ((unused)))
+{
+  return 0;
+}
+
+grub_err_t
+grub_script_execute (struct grub_script *script)
+{
+  if (script == 0 || script->cmd == 0)
+    return 0;
+
+  return script->cmd->exec (script->cmd);
+}
+
+int
+grub_getkey (void)
+{
+  return -1;
 }
 
 void
-grub_free (void *ptr)
+grub_refresh (void)
 {
-  free (ptr);
+  fflush (stdout);
 }
 
-void *
-grub_realloc (void *ptr, grub_size_t size)
+static void
+grub_xputs_real (const char *str)
 {
-  return xrealloc (ptr, size);
+  fputs (str, stdout);
 }
 
-void *
-grub_memalign (grub_size_t align, grub_size_t size)
+void (*grub_xputs) (const char *str) = grub_xputs_real;
+
+int
+grub_dl_ref (grub_dl_t mod)
 {
-  void *p;
+  (void) mod;
+  return 0;
+}
 
-#if defined(HAVE_POSIX_MEMALIGN)
-  if (posix_memalign (&p, align, size) != 0)
-    p = 0;
-#elif defined(HAVE_MEMALIGN)
-  p = memalign (align, size);
-#else
-  (void) align;
-  (void) size;
-  grub_util_error ("grub_memalign is not supported");
-#endif
-
-  if (! p)
-    grub_util_error ("out of memory");
-
-  return p;
+int
+grub_dl_unref (grub_dl_t mod)
+{
+  (void) mod;
+  return 0;
 }
 
 /* Some functions that we don't use.  */
@@ -311,34 +257,6 @@ grub_mm_init_region (void *addr __attribute__ ((unused)),
 void
 grub_register_exported_symbols (void)
 {
-}
-
-void
-grub_exit (void)
-{
-  exit (1);
-}
-
-grub_uint32_t
-grub_get_rtc (void)
-{
-  struct timeval tv;
-
-  gettimeofday (&tv, 0);
-
-  return (tv.tv_sec * GRUB_TICKS_PER_SECOND
-	  + (((tv.tv_sec % GRUB_TICKS_PER_SECOND) * 1000000 + tv.tv_usec)
-	     * GRUB_TICKS_PER_SECOND / 1000000));
-}
-
-grub_uint64_t
-grub_get_time_ms (void)
-{
-  struct timeval tv;
-
-  gettimeofday (&tv, 0);
-
-  return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
 
 #ifdef __MINGW32__
@@ -363,32 +281,6 @@ grub_millisleep (grub_uint32_t ms)
 
 #endif
 
-void
-grub_arch_sync_caches (void *address __attribute__ ((unused)),
-		       grub_size_t len __attribute__ ((unused)))
-{
-}
-
-#ifndef  HAVE_ASPRINTF
-
-int
-asprintf (char **buf, const char *fmt, ...)
-{
-  int status;
-  va_list ap;
-
-  /* Should be large enough.  */
-  *buf = xmalloc (512);
-
-  va_start (ap, fmt);
-  status = vsprintf (*buf, fmt, ap);
-  va_end (ap);
-
-  return status;
-}
-
-#endif
-
 #ifdef __MINGW32__
 
 void sync (void)
@@ -400,17 +292,13 @@ int fsync (int fno __attribute__ ((unused)))
   return 0;
 }
 
-void sleep (int s)
-{
-  Sleep (s * 1000);
-}
-
 grub_int64_t
 grub_util_get_disk_size (char *name)
 {
   HANDLE hd;
   grub_int64_t size = -1LL;
 
+  strip_trailing_slashes(name);
   hd = CreateFile (name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
                    0, OPEN_EXISTING, 0, 0);
 
@@ -449,3 +337,15 @@ fail:
 }
 
 #endif /* __MINGW32__ */
+
+#ifdef GRUB_UTIL
+void
+grub_util_init_nls (void)
+{
+#if (defined(ENABLE_NLS) && ENABLE_NLS)
+  setlocale (LC_ALL, "");
+  bindtextdomain (PACKAGE, LOCALEDIR);
+  textdomain (PACKAGE);
+#endif /* (defined(ENABLE_NLS) && ENABLE_NLS) */
+}
+#endif

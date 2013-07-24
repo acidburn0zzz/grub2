@@ -22,6 +22,8 @@
 
 #include <grub/symbol.h>
 
+#define GRUB_MAX_ERRMSG		256
+
 typedef enum
   {
     GRUB_ERR_NONE = 0,
@@ -50,23 +52,43 @@ typedef enum
     GRUB_ERR_BAD_FONT,
     GRUB_ERR_NOT_IMPLEMENTED_YET,
     GRUB_ERR_SYMLINK_LOOP,
-    GRUB_ERR_BAD_GZIP_DATA,
+    GRUB_ERR_BAD_COMPRESSED_DATA,
     GRUB_ERR_MENU,
     GRUB_ERR_TIMEOUT,
     GRUB_ERR_IO,
-    GRUB_ERR_ACCESS_DENIED
+    GRUB_ERR_ACCESS_DENIED,
+    GRUB_ERR_EXTRACTOR,
+    GRUB_ERR_NET_BAD_ADDRESS,
+    GRUB_ERR_NET_ROUTE_LOOP,
+    GRUB_ERR_NET_NO_ROUTE,
+    GRUB_ERR_NET_NO_ANSWER,
+    GRUB_ERR_WAIT,
+    GRUB_ERR_BUG,
+    GRUB_ERR_NET_PORT_CLOSED,
+    GRUB_ERR_NET_INVALID_RESPONSE,
+    GRUB_ERR_NET_UNKNOWN_ERROR,
+    GRUB_ERR_NET_PACKET_TOO_BIG,
+    GRUB_ERR_NET_NO_DOMAIN,
+    GRUB_ERR_EOF
   }
 grub_err_t;
 
+struct grub_error_saved
+{
+  grub_err_t grub_errno;
+  char errmsg[GRUB_MAX_ERRMSG];
+};
+
 extern grub_err_t EXPORT_VAR(grub_errno);
-extern char EXPORT_VAR(grub_errmsg)[];
+extern char EXPORT_VAR(grub_errmsg)[GRUB_MAX_ERRMSG];
 
 grub_err_t EXPORT_FUNC(grub_error) (grub_err_t n, const char *fmt, ...);
 void EXPORT_FUNC(grub_fatal) (const char *fmt, ...) __attribute__ ((noreturn));
 void EXPORT_FUNC(grub_error_push) (void);
 int EXPORT_FUNC(grub_error_pop) (void);
 void EXPORT_FUNC(grub_print_error) (void);
-int EXPORT_FUNC(grub_err_printf) (const char *fmt, ...)
-__attribute__ ((format (printf, 1, 2)));
+extern int EXPORT_VAR(grub_err_printed_errors);
+int grub_err_printf (const char *fmt, ...)
+     __attribute__ ((format (printf, 1, 2)));
 
 #endif /* ! GRUB_ERR_HEADER */

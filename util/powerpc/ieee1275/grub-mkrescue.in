@@ -1,4 +1,5 @@
-#! /bin/sh -e
+#! /bin/sh
+set -e
 
 # Make GRUB rescue image
 # Copyright (C) 1999,2000,2001,2002,2003,2004,2005,2006,2007,2008  Free Software Foundation, Inc.
@@ -19,68 +20,100 @@
 # Initialize some variables.
 transform="@program_transform_name@"
 
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-bindir=@bindir@
-libdir=@libdir@
+prefix="@prefix@"
+exec_prefix="@exec_prefix@"
+bindir="@bindir@"
+libdir="@libdir@"
 PACKAGE_NAME=@PACKAGE_NAME@
 PACKAGE_TARNAME=@PACKAGE_TARNAME@
 PACKAGE_VERSION=@PACKAGE_VERSION@
-target_cpu=@target_cpu@
-platform=@platform@
-pkglibdir=${libdir}/`echo ${PACKAGE_TARNAME}/${target_cpu}-${platform} | sed ${transform}`
+input_dir="${libdir}/@PACKAGE@/powerpc-ieee1275"
+datarootdir="@datarootdir@"
+datadir="@datadir@"
+if [ "x$pkgdatadir" = x ]; then
+    pkgdatadir="${datadir}/@PACKAGE@"
+fi
 
-grub_mkimage=${bindir}/`echo grub-mkelfimage | sed ${transform}`
+self=`basename $0`
+
+grub_mkimage="${bindir}/`echo grub-mkimage | sed ${transform}`"
+
+export TEXTDOMAIN=@PACKAGE@
+export TEXTDOMAINDIR="@localedir@"
+
+. "${pkgdatadir}/grub-mkconfig_lib"
 
 # Usage: usage
 # Print the usage.
 usage () {
-    cat <<EOF
-Usage: grub-mkrescue [OPTION] output_image
-Make GRUB rescue image.
-
-  -h, --help              print this message and exit
-  -v, --version           print the version information and exit
-  --modules=MODULES       pre-load specified modules MODULES
-  --pkglibdir=DIR         use images from directory DIR
-                          default: ${pkglibdir}
-  --grub-mkimage=FILE     use FILE as grub-mkimage
-
-grub-mkimage generates a bootable rescue CD image for PowerMac and CHRP.
-
-Report bugs to <bug-grub@gnu.org>.
-EOF
+    gettext_printf "Usage: %s [OPTION] SOURCE...\n" "$self"
+    gettext "Make GRUB CD-ROM, disk, pendrive and floppy bootable image."; echo
+    echo
+    print_option_help "-h, --help" "$(gettext "print this message and exit")"
+    print_option_help "-v, --version" "$(gettext "print the version information and exit")"
+    print_option_help "--modules=$(gettext "MODULES")" "$(gettext "pre-load specified modules MODULES")"
+    print_option_help "--grub-mkimage=$(gettext "FILE")" "$(gettext "use FILE as grub-mkimage")"
+    echo
+    gettext_printf "%s generates a bootable rescue image with specified source files, source directories, or mkisofs options listed by the output of \`%s'\n" "genisoimage -help" "$self" | grub_fmt
+    echo
+    gettext "Report bugs to <bug-grub@gnu.org>."; echo
 }
 
-input_dir=${pkglibdir}
+argument () {
+  opt=$1
+  shift
+
+  if test $# -eq 0; then
+      gettext_printf "%s: option requires an argument -- \`%s'\n" "$0" "$opt" 1>&2
+      exit 1
+  fi
+  echo $1
+}
+
+source=
+output_image=
 
 # Check the arguments.
-for option in "$@"; do
+while test $# -gt 0
+do
+    option=$1
+    shift
+
     case "$option" in
     -h | --help)
 	usage
 	exit 0 ;;
     -v | --version)
-	echo "grub-install (GNU GRUB ${PACKAGE_VERSION})"
+	echo "$self (${PACKAGE_NAME}) ${PACKAGE_VERSION}"
 	exit 0 ;;
+
+    --modules)
+	modules=`argument $option "$@"`; shift ;;
     --modules=*)
 	modules=`echo "$option" | sed 's/--modules=//'` ;;
-    --pkglibdir=*)
-	input_dir=`echo "$option" | sed 's/--pkglibdir=//'` ;;
+
+    --override-directory)
+	input_dir=`argument $option "$@"`; shift ;;
+    --override-directory=*)
+	input_dir=`echo "$option" | sed 's/--override-directory=//'` ;;
+
+    --grub-mkimage)
+	grub_mkimage=`argument $option "$@"`; shift ;;
     --grub-mkimage=*)
 	grub_mkimage=`echo "$option" | sed 's/--grub-mkimage=//'` ;;
-    -*)
-	echo "Unrecognized option \`$option'" 1>&2
-	usage
-	exit 1
-	;;
+
+    -o | --output)
+	output_image=`argument $option "$@"`; shift ;;
+    --output=*)
+	output_image=`echo "$option" | sed 's/--output=//'` ;;
+
+    --rom-directory=*)
+       ;;
+    --rom-directory)
+	shift ;;
+
     *)
-	if test "x$output_image" != x; then
-	    echo "Unrecognized option \`$option'" 1>&2
-	    usage
-	    exit 1
-	fi
-	output_image="${option}" ;;
+	source="${source} ${option} $@"; break ;;
     esac
 done
 
@@ -93,21 +126,21 @@ if [ "x${modules}" = "x" ] ; then
   modules=`cd ${input_dir}/ && ls *.mod`
 fi
 
-map_file=`mktemp`
+map_file=`mktemp "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 1
 cat >${map_file} <<EOF
 # EXTN          XLate   CREATOR   TYPE     Comment
 grub.img        Raw     'UNIX'    'tbxi'   "bootstrap"
 EOF
 
-iso_dir=`mktemp -d`
+iso_dir=`mktemp -d "${TMPDIR:-/tmp}/tmp.XXXXXXXXXX"` || exit 1
 boot_dir=${iso_dir}/boot/grub
 mkdir ${iso_dir}/boot
 mkdir ${boot_dir}
 core_img=${boot_dir}/grub.img
-${grub_mkimage} -n -d ${input_dir}/ -o ${core_img} ${modules}
-genisoimage -hfs -part -no-desktop -r -J -o ${output_image} \
+${grub_mkimage} -O powerpc-ieee1275 -n -d ${input_dir}/ -o ${core_img} ${modules}
+genisoimage -graft-points -hfs -part -no-desktop -r -J -o ${output_image} \
  -map ${map_file} -hfs-bless ${boot_dir} -chrp-boot -sysid PPC \
- ${iso_dir}
+ ${iso_dir} ${source}
 
 rm -rf ${iso_dir}
 rm -f ${map_file}

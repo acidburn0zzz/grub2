@@ -39,7 +39,9 @@ typedef struct grub_hfs_extent grub_hfs_datarecord_t[3];
 struct grub_hfs_sblock
 {
   grub_uint16_t magic;
-  grub_uint8_t unused[18];
+  grub_uint32_t ctime;
+  grub_uint32_t mtime;
+  grub_uint8_t unused[10];
   grub_uint32_t blksz;
   grub_uint8_t unused2[4];
   grub_uint16_t first_block;
@@ -48,7 +50,8 @@ struct grub_hfs_sblock
   /* A pascal style string that holds the volumename.  */
   grub_uint8_t volname[28];
 
-  grub_uint8_t unused5[60];
+  grub_uint8_t unused5[52];
+  grub_uint64_t num_serial;
   grub_uint16_t embed_sig;
   struct grub_hfs_extent embed_extent;
   grub_uint8_t unused6[4];

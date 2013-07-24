@@ -32,6 +32,9 @@ struct grub_menu_entry
   /* The title name.  */
   const char *title;
 
+  /* The identifier.  */
+  const char *id;
+
   /* If set means not everybody is allowed to boot this entry.  */
   int restricted;
 
@@ -46,6 +49,14 @@ struct grub_menu_entry
 
   /* The sourcecode of the menu entry, used by the editor.  */
   const char *sourcecode;
+
+  /* Parameters to be passed to menu definition.  */
+  int argc;
+  char **args;
+
+  int hotkey;
+
+  int submenu;
 
   /* The next element.  */
   struct grub_menu_entry *next;
@@ -83,15 +94,13 @@ typedef struct grub_menu_execute_callback
 }
 *grub_menu_execute_callback_t;
 
-
 grub_menu_entry_t grub_menu_get_entry (grub_menu_t menu, int no);
 int grub_menu_get_timeout (void);
 void grub_menu_set_timeout (int timeout);
-void grub_menu_execute_entry (grub_menu_entry_t entry);
-void grub_menu_execute_with_fallback (grub_menu_t menu,
-				      grub_menu_entry_t entry,
-				      grub_menu_execute_callback_t callback,
-				      void *callback_data);
 void grub_menu_entry_run (grub_menu_entry_t entry);
+int grub_menu_get_default_entry_index (grub_menu_t menu);
+
+void grub_menu_init (void);
+void grub_menu_fini (void);
 
 #endif /* GRUB_MENU_HEADER */

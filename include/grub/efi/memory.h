@@ -24,25 +24,8 @@
 
 #define GRUB_MMAP_REGISTER_BY_FIRMWARE  1
 
-#define GRUB_MACHINE_MEMORY_AVAILABLE	1
-#define GRUB_MACHINE_MEMORY_RESERVED	2
-#define GRUB_MACHINE_MEMORY_ACPI	3
-#define GRUB_MACHINE_MEMORY_NVS         4
-#define GRUB_MACHINE_MEMORY_CODE        5
-#define GRUB_MACHINE_MEMORY_MAX_TYPE 	5
-  /* This one is special: it's used internally but is never reported
-     by firmware. */
-#define GRUB_MACHINE_MEMORY_HOLE 	6
-
-
-grub_err_t EXPORT_FUNC(grub_machine_mmap_iterate)
-(int NESTED_FUNC_ATTR (*hook) (grub_uint64_t, grub_uint64_t, grub_uint32_t));
 grub_err_t grub_machine_mmap_register (grub_uint64_t start, grub_uint64_t size,
 				       int type, int handle);
 grub_err_t grub_machine_mmap_unregister (int handle);
-
-grub_uint64_t grub_mmap_get_post64 (void);
-grub_uint64_t grub_mmap_get_upper (void);
-grub_uint64_t grub_mmap_get_lower (void);
 
 #endif /* ! GRUB_MEMORY_MACHINE_HEADER */

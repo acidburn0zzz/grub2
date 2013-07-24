@@ -19,6 +19,7 @@
 #ifndef	GRUB_USB_H
 #define	GRUB_USB_H	1
 
+#include <grub/err.h>
 #include <grub/usbdesc.h>
 #include <grub/usbtrans.h>
 
@@ -29,13 +30,16 @@ typedef struct grub_usb_controller_dev *grub_usb_controller_dev_t;
 typedef enum
   {
     GRUB_USB_ERR_NONE,
+    GRUB_USB_ERR_WAIT,
     GRUB_USB_ERR_INTERNAL,
     GRUB_USB_ERR_STALL,
     GRUB_USB_ERR_DATA,
     GRUB_USB_ERR_NAK,
     GRUB_USB_ERR_BABBLE,
     GRUB_USB_ERR_TIMEOUT,
-    GRUB_USB_ERR_BITSTUFF
+    GRUB_USB_ERR_BITSTUFF,
+    GRUB_USB_ERR_UNRECOVERABLE,
+    GRUB_USB_ERR_BADDEVICE
   } grub_usb_err_t;
 
 typedef enum
@@ -64,9 +68,6 @@ grub_usb_err_t grub_usb_clear_halt (grub_usb_device_t dev, int endpoint);
 grub_usb_err_t grub_usb_set_configuration (grub_usb_device_t dev,
 					   int configuration);
 
-grub_usb_err_t grub_usb_get_string (grub_usb_device_t dev, grub_uint8_t index,
-				    int langid, char **string);
-
 void grub_usb_controller_dev_register (grub_usb_controller_dev_t usb);
 
 void grub_usb_controller_dev_unregister (grub_usb_controller_dev_t usb);
@@ -90,6 +91,7 @@ grub_usb_err_t
 grub_usb_root_hub (grub_usb_controller_t controller);
 
 
+
 /* XXX: All handled by libusb for now.  */
 struct grub_usb_controller_dev
 {
@@ -98,16 +100,26 @@ struct grub_usb_controller_dev
 
   int (*iterate) (int (*hook) (grub_usb_controller_t dev));
 
-  grub_usb_err_t (*transfer) (grub_usb_controller_t dev,
-			      grub_usb_transfer_t transfer);
+  grub_usb_err_t (*setup_transfer) (grub_usb_controller_t dev,
+				    grub_usb_transfer_t transfer);
+
+  grub_usb_err_t (*check_transfer) (grub_usb_controller_t dev,
+				    grub_usb_transfer_t transfer,
+				    grub_size_t *actual);
+
+  grub_usb_err_t (*cancel_transfer) (grub_usb_controller_t dev,
+				     grub_usb_transfer_t transfer);
 
   int (*hubports) (grub_usb_controller_t dev);
 
   grub_err_t (*portstatus) (grub_usb_controller_t dev, unsigned int port,
 			    unsigned int enable);
 
-  grub_usb_speed_t (*detect_dev) (grub_usb_controller_t dev, int port);
+  grub_usb_speed_t (*detect_dev) (grub_usb_controller_t dev, int port, int *changed);
 
+  /* Per controller flag - port reset pending, don't do another reset */
+  grub_uint64_t pending_reset;
+  
   /* The next host controller.  */
   struct grub_usb_controller_dev *next;
 };
@@ -127,6 +139,15 @@ struct grub_usb_interface
   struct grub_usb_desc_if *descif;
 
   struct grub_usb_desc_endp *descendp;
+
+  /* A driver is handling this interface. Do we need to support multiple drivers
+     for single interface?
+   */
+  int attached;
+
+  void (*detach_hook) (struct grub_usb_device *dev, int config, int interface);
+
+  void *detach_data;
 };
 
 struct grub_usb_configuration
@@ -159,13 +180,46 @@ struct grub_usb_device
   int initialized;
 
   /* Data toggle values (used for bulk transfers only).  */
-  int toggle[16];
+  int toggle[256];
 
-  /* Device-specific data.  */
+  /* Used by libusb wrapper.  Schedulded for removal. */
   void *data;
+
+  /* Hub information.  */
+
+  /* Array of children for a hub.  */
+  grub_usb_device_t *children;
+
+  /* Number of hub ports.  */
+  unsigned nports;
+
+  grub_usb_transfer_t hub_transfer;
+
+  grub_uint32_t statuschange;
+
+  struct grub_usb_desc_endp *hub_endpoint;
+
+  /* EHCI Split Transfer information */
+  int port;
+
+  int hubaddr;
 };
 
 
+
+typedef enum grub_usb_ep_type
+  {
+    GRUB_USB_EP_CONTROL,
+    GRUB_USB_EP_ISOCHRONOUS,
+    GRUB_USB_EP_BULK,
+    GRUB_USB_EP_INTERRUPT
+  } grub_usb_ep_type_t;
+
+static inline enum grub_usb_ep_type
+grub_usb_get_ep_type (struct grub_usb_desc_endp *ep)
+{
+  return ep->attrib & 3;
+}
 
 typedef enum
   {
@@ -187,12 +241,20 @@ typedef enum
 
 typedef enum
   {
-    GRUB_USBMS_SUBCLASS_BULK = 0x06
+    GRUB_USBMS_SUBCLASS_BULK = 0x06,
+  	/* Experimental support for non-pure SCSI devices */
+    GRUB_USBMS_SUBCLASS_RBC = 0x01,
+    GRUB_USBMS_SUBCLASS_MMC2 = 0x02,
+    GRUB_USBMS_SUBCLASS_UFI = 0x04,
+    GRUB_USBMS_SUBCLASS_SFF8070 = 0x05
   } grub_usbms_subclass_t;
 
 typedef enum
   {
-    GRUB_USBMS_PROTOCOL_BULK = 0x50
+    GRUB_USBMS_PROTOCOL_BULK = 0x50,
+    /* Experimental support for Control/Bulk/Interrupt (CBI) devices */
+    GRUB_USBMS_PROTOCOL_CBI = 0x00, /* CBI with interrupt */
+    GRUB_USBMS_PROTOCOL_CB = 0x01  /* CBI wthout interrupt */
   } grub_usbms_protocol_t;
 
 static inline struct grub_usb_desc_if *
@@ -203,5 +265,34 @@ grub_usb_get_config_interface (struct grub_usb_desc_config *config)
   interf = (struct grub_usb_desc_if *) (sizeof (*config) + (char *) config);
   return interf;
 }
+
+typedef int (*grub_usb_attach_hook_class) (grub_usb_device_t usbdev,
+					   int configno, int interfno);
+
+struct grub_usb_attach_desc
+{
+  struct grub_usb_attach_desc *next;
+  struct grub_usb_attach_desc **prev;
+  int class;
+  grub_usb_attach_hook_class hook;
+};
+
+void grub_usb_register_attach_hook_class (struct grub_usb_attach_desc *desc);
+void grub_usb_unregister_attach_hook_class (struct grub_usb_attach_desc *desc);
+
+void grub_usb_poll_devices (void);
+
+void grub_usb_device_attach (grub_usb_device_t dev);
+grub_usb_err_t
+grub_usb_bulk_read_extended (grub_usb_device_t dev,
+			     int endpoint, grub_size_t size, char *data,
+			     int timeout, grub_size_t *actual);
+grub_usb_transfer_t
+grub_usb_bulk_read_background (grub_usb_device_t dev,
+			      int endpoint, grub_size_t size, void *data);
+grub_usb_err_t
+grub_usb_check_transfer (grub_usb_transfer_t trans, grub_size_t *actual);
+void
+grub_usb_cancel_transfer (grub_usb_transfer_t trans);
 
 #endif /* GRUB_USB_H */

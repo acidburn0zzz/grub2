@@ -1,6 +1,6 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2005,2006,2007,2008  Free Software Foundation, Inc.
+ *  Copyright (C) 2005,2006,2007,2008,2009  Free Software Foundation, Inc.
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 #ifndef GRUB_VBE_MACHINE_HEADER
 #define GRUB_VBE_MACHINE_HEADER	1
 
-#include <grub/video_fb.h>
+#include <grub/video.h>
 
 /* Default video mode to be used.  */
 #define GRUB_VBE_DEFAULT_VIDEO_MODE     0x101
@@ -171,62 +171,62 @@ struct grub_vbe_palette_data
   grub_uint8_t alignment;
 } __attribute__ ((packed));
 
-/* Prototypes for kernel real mode thunks.  */
+struct grub_vbe_flat_panel_info
+{
+  grub_uint16_t horizontal_size;
+  grub_uint16_t vertical_size;
+  grub_uint16_t panel_type;
+  grub_uint8_t red_bpp;
+  grub_uint8_t green_bpp;
+  grub_uint8_t blue_bpp;
+  grub_uint8_t reserved_bpp;
+  grub_uint32_t reserved_offscreen_mem_size;
+  grub_vbe_farptr_t reserved_offscreen_mem_ptr;
 
+  grub_uint8_t reserved[14];
+} __attribute__ ((packed));
+
+/* Prototypes for helper functions.  */
 /* Call VESA BIOS 0x4f00 to get VBE Controller Information, return status.  */
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_get_controller_info) (struct grub_vbe_info_block *controller_info);
-
+grub_vbe_status_t 
+grub_vbe_bios_get_controller_info (struct grub_vbe_info_block *controller_info);
 /* Call VESA BIOS 0x4f01 to get VBE Mode Information, return status.  */
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_get_mode_info) (grub_uint32_t mode,
-                                                            struct grub_vbe_mode_info_block *mode_info);
+grub_vbe_status_t 
+grub_vbe_bios_get_mode_info (grub_uint32_t mode,
+			     struct grub_vbe_mode_info_block *mode_info);
+/* Call VESA BIOS 0x4f03 to return current VBE Mode, return status.  */
+grub_vbe_status_t 
+grub_vbe_bios_get_mode (grub_uint32_t *mode);
+/* Call VESA BIOS 0x4f05 to set memory window, return status.  */
+grub_vbe_status_t
+grub_vbe_bios_set_memory_window (grub_uint32_t window, grub_uint32_t position);
+/* Call VESA BIOS 0x4f05 to return memory window, return status.  */
+grub_vbe_status_t
+grub_vbe_bios_get_memory_window (grub_uint32_t window,
+				 grub_uint32_t *position);
+/* Call VESA BIOS 0x4f06 to set scanline length (in bytes), return status.  */
+grub_vbe_status_t 
+grub_vbe_bios_set_scanline_length (grub_uint32_t length);
+/* Call VESA BIOS 0x4f06 to return scanline length (in bytes), return status.  */
+grub_vbe_status_t 
+grub_vbe_bios_get_scanline_length (grub_uint32_t *length);
+/* Call VESA BIOS 0x4f07 to get display start, return status.  */
+grub_vbe_status_t 
+grub_vbe_bios_get_display_start (grub_uint32_t *x,
+				 grub_uint32_t *y);
 
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_getset_dac_palette_width) (int set, int *width);
+grub_vbe_status_t grub_vbe_bios_getset_dac_palette_width (int set, int *width);
 
 #define grub_vbe_bios_get_dac_palette_width(width)	grub_vbe_bios_getset_dac_palette_width(0, (width))
 #define grub_vbe_bios_set_dac_palette_width(width)	grub_vbe_bios_getset_dac_palette_width(1, (width))
 
-/* Call VESA BIOS 0x4f02 to set video mode, return status.  */
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_set_mode) (grub_uint32_t mode,
-                                                       struct grub_vbe_crtc_info_block *crtc_info);
-
-/* Call VESA BIOS 0x4f03 to return current VBE Mode, return status.  */
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_get_mode) (grub_uint32_t *mode);
-
-/* Call VESA BIOS 0x4f05 to set memory window, return status.  */
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_set_memory_window) (grub_uint32_t window,
-                                                                grub_uint32_t position);
-
-/* Call VESA BIOS 0x4f05 to return memory window, return status.  */
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_get_memory_window) (grub_uint32_t window,
-                                                                grub_uint32_t *position);
-
-/* Call VESA BIOS 0x4f06 to set scanline length (in bytes), return status.  */
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_set_scanline_length) (grub_uint32_t length);
-
-/* Call VESA BIOS 0x4f06 to return scanline length (in bytes), return status.  */
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_get_scanline_length) (grub_uint32_t *length);
-
-/* Call VESA BIOS 0x4f07 to set display start, return status.  */
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_set_display_start) (grub_uint32_t x,
-                                                                grub_uint32_t y);
-
-/* Call VESA BIOS 0x4f07 to get display start, return status.  */
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_get_display_start) (grub_uint32_t *x,
-                                                                grub_uint32_t *y);
-
-/* Call VESA BIOS 0x4f09 to set palette data, return status.  */
-grub_vbe_status_t EXPORT_FUNC(grub_vbe_bios_set_palette_data) (grub_uint32_t color_count,
-                                                               grub_uint32_t start_index,
-                                                               struct grub_vbe_palette_data *palette_data);
-
-/* Prototypes for helper functions.  */
-
 grub_err_t grub_vbe_probe (struct grub_vbe_info_block *info_block);
-grub_err_t grub_vbe_set_video_mode (grub_uint32_t mode,
-                                    struct grub_vbe_mode_info_block *mode_info);
 grub_err_t grub_vbe_get_video_mode (grub_uint32_t *mode);
 grub_err_t grub_vbe_get_video_mode_info (grub_uint32_t mode,
                                          struct grub_vbe_mode_info_block *mode_info);
+grub_vbe_status_t 
+grub_vbe_bios_get_pm_interface (grub_uint16_t *seg, grub_uint16_t *offset,
+				grub_uint16_t *length);
 
 
 #endif /* ! GRUB_VBE_MACHINE_HEADER */

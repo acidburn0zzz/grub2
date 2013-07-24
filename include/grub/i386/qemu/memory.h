@@ -21,7 +21,7 @@
 #define _GRUB_MEMORY_MACHINE_HEADER      1
 
 #include <grub/symbol.h>
-#include <grub/i386/pc/memory.h>
+#include <grub/i386/coreboot/memory.h>
 
 #ifndef ASM_FILE
 #include <grub/err.h>
@@ -32,14 +32,5 @@
 
 #define GRUB_MEMORY_MACHINE_UPPER_START			0x100000	/* 1 MiB */
 #define GRUB_MEMORY_MACHINE_LOWER_SIZE			GRUB_MEMORY_MACHINE_UPPER_START
-
-#ifndef ASM_FILE
-
-void grub_machine_mmap_init (void);
-
-grub_err_t EXPORT_FUNC(grub_machine_mmap_iterate)
-     (int NESTED_FUNC_ATTR (*hook) (grub_uint64_t, grub_uint64_t, grub_uint32_t));
-
-#endif
 
 #endif /* ! _GRUB_MEMORY_MACHINE_HEADER */

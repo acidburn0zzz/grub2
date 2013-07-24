@@ -35,8 +35,11 @@ void EXPORT_FUNC(grub_free) (void *ptr);
 void *EXPORT_FUNC(grub_realloc) (void *ptr, grub_size_t size);
 void *EXPORT_FUNC(grub_memalign) (grub_size_t align, grub_size_t size);
 
+void grub_mm_check_real (char *file, int line);
+#define grub_mm_check() grub_mm_check_real (GRUB_FILE, __LINE__);
+
 /* For debugging.  */
-#if defined(MM_DEBUG) && !defined(GRUB_UTIL)
+#if defined(MM_DEBUG) && !defined(GRUB_UTIL) && !defined (GRUB_MACHINE_EMU)
 /* Set this variable to 1 when you want to trace all memory function calls.  */
 extern int EXPORT_VAR(grub_mm_debug);
 
@@ -44,19 +47,19 @@ void grub_mm_dump_free (void);
 void grub_mm_dump (unsigned lineno);
 
 #define grub_malloc(size)	\
-  grub_debug_malloc (__FILE__, __LINE__, size)
+  grub_debug_malloc (GRUB_FILE, __LINE__, size)
 
 #define grub_zalloc(size)	\
-  grub_debug_zalloc (__FILE__, __LINE__, size)
+  grub_debug_zalloc (GRUB_FILE, __LINE__, size)
 
 #define grub_realloc(ptr,size)	\
-  grub_debug_realloc (__FILE__, __LINE__, ptr, size)
+  grub_debug_realloc (GRUB_FILE, __LINE__, ptr, size)
 
 #define grub_memalign(align,size)	\
-  grub_debug_memalign (__FILE__, __LINE__, align, size)
+  grub_debug_memalign (GRUB_FILE, __LINE__, align, size)
 
 #define grub_free(ptr)	\
-  grub_debug_free (__FILE__, __LINE__, ptr)
+  grub_debug_free (GRUB_FILE, __LINE__, ptr)
 
 void *EXPORT_FUNC(grub_debug_malloc) (const char *file, int line,
 				      grub_size_t size);
@@ -68,5 +71,22 @@ void *EXPORT_FUNC(grub_debug_realloc) (const char *file, int line, void *ptr,
 void *EXPORT_FUNC(grub_debug_memalign) (const char *file, int line,
 					grub_size_t align, grub_size_t size);
 #endif /* MM_DEBUG && ! GRUB_UTIL */
+
+#include <grub/err.h>
+
+static inline grub_err_t 
+grub_extend_alloc (grub_size_t sz, grub_size_t *allocated, void **ptr)
+{
+  void *n;
+  if (sz < *allocated)
+    return GRUB_ERR_NONE;
+
+  *allocated = 2 * sz;
+  n = grub_realloc (*ptr, *allocated);
+  if (!n)
+    return grub_errno;
+  *ptr = n;
+  return GRUB_ERR_NONE;
+}
 
 #endif /* ! GRUB_MM_H */

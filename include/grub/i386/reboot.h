@@ -1,6 +1,6 @@
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2008  Free Software Foundation, Inc.
+ *  Copyright (C) 2011  Free Software Foundation, Inc.
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,4 +16,13 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-extern void grub_reboot (void);
+#ifndef	GRUB_REBOOT_H
+#define	GRUB_REBOOT_H	1
+
+#ifndef ASM_FILE
+
+extern grub_uint8_t grub_reboot_end[], grub_reboot_start[];
+
+#endif
+
+#endif

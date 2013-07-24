@@ -68,14 +68,6 @@ struct grub_macho_header64
   grub_uint32_t reserved;
 } __attribute__ ((packed));
 
-/* Convenience union. What do we need to load to identify the file type. */
-union grub_macho_filestart
-{
-  struct grub_macho_fat_header fat;
-  struct grub_macho_header32 thin32;
-  struct grub_macho_header64 thin64;
-} __attribute__ ((packed));
-
 /* Common header of Mach-O commands. */
 struct grub_macho_cmd
 {
@@ -102,6 +94,47 @@ struct grub_macho_segment32
   grub_uint32_t flags;
 } __attribute__ ((packed));
 
+/* 64-bit segment command. */
+struct grub_macho_segment64
+{
+#define GRUB_MACHO_CMD_SEGMENT64  0x19
+  grub_uint32_t cmd;
+  grub_uint32_t cmdsize;
+  grub_uint8_t segname[16];
+  grub_uint64_t vmaddr;
+  grub_uint64_t vmsize;
+  grub_uint64_t fileoff;
+  grub_uint64_t filesize;
+  grub_macho_vmprot_t maxprot;
+  grub_macho_vmprot_t initprot;
+  grub_uint32_t nsects;
+  grub_uint32_t flags;
+} __attribute__ ((packed));
+
 #define GRUB_MACHO_CMD_THREAD     5
+
+struct grub_macho_lzss_header
+{
+  char magic[8];
+#define GRUB_MACHO_LZSS_MAGIC "complzss"
+  grub_uint32_t unused;
+  grub_uint32_t uncompressed_size;
+  grub_uint32_t compressed_size;
+};
+
+/* Convenience union. What do we need to load to identify the file type. */
+union grub_macho_filestart
+{
+  struct grub_macho_fat_header fat;
+  struct grub_macho_header32 thin32;
+  struct grub_macho_header64 thin64;
+  struct grub_macho_lzss_header lzss;
+} __attribute__ ((packed));
+
+#define GRUB_MACHO_LZSS_OFFSET 0x180
+
+grub_size_t
+grub_decompress_lzss (grub_uint8_t *dst, grub_uint8_t *dstend,
+		      grub_uint8_t *src, grub_uint8_t *srcend);
 
 #endif

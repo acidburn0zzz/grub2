@@ -38,6 +38,8 @@ typedef enum grub_arg_type grub_arg_type_t;
 
 /* Flags for the option field op grub_arg_option.  */
 #define GRUB_ARG_OPTION_OPTIONAL	(1 << 1)
+/* Flags for an option that can appear multiple times.  */
+#define GRUB_ARG_OPTION_REPEATABLE      (1 << 2)
 
 enum grub_key_type
   {
@@ -51,15 +53,18 @@ struct grub_arg_option
   const char *longarg;
   int shortarg;
   int flags;
-  char *doc;
-  char *arg;
+  const char *doc;
+  const char *arg;
   grub_arg_type_t type;
 };
 
 struct grub_arg_list
 {
   int set;
-  char *arg;
+  union {
+    char *arg;
+    char **args;
+  };
 };
 
 struct grub_extcmd;
@@ -67,6 +72,8 @@ struct grub_extcmd;
 int grub_arg_parse (struct grub_extcmd *cmd, int argc, char **argv,
 		    struct grub_arg_list *usr, char ***args, int *argnum);
 
-void grub_arg_show_help (struct grub_extcmd *cmd);
+void EXPORT_FUNC(grub_arg_show_help) (struct grub_extcmd *cmd);
+struct grub_arg_list* grub_arg_list_alloc (struct grub_extcmd *cmd,
+					   int argc, char *argv[]);
 
 #endif /* ! GRUB_ARG_HEADER */

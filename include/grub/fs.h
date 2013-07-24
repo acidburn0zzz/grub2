@@ -1,7 +1,7 @@
 /* fs.h - filesystem manager */
 /*
  *  GRUB  --  GRand Unified Bootloader
- *  Copyright (C) 2002,2003,2004,2007,2008  Free Software Foundation, Inc.
+ *  Copyright (C) 2002,2003,2004,2007,2008,2009  Free Software Foundation, Inc.
  *
  *  GRUB is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,20 +24,30 @@
 #include <grub/symbol.h>
 #include <grub/types.h>
 
+#include <grub/list.h>
+/* For embedding types.  */
+#ifdef GRUB_UTIL
+#include <grub/partition.h>
+#endif
+
 /* Forward declaration is required, because of mutual reference.  */
 struct grub_file;
 
 struct grub_dirhook_info
 {
-  int dir:1;
-  int mtimeset:1;
-  int case_insensitive:1;
+  unsigned dir:1;
+  unsigned mtimeset:1;
+  unsigned case_insensitive:1;
   grub_int32_t mtime;
 };
 
 /* Filesystem descriptor.  */
 struct grub_fs
 {
+  /* The next filesystem.  */
+  struct grub_fs *next;
+  struct grub_fs **prev;
+
   /* My name.  */
   const char *name;
 
@@ -69,12 +79,18 @@ struct grub_fs
   grub_err_t (*mtime) (grub_device_t device, grub_int32_t *timebuf);
 
 #ifdef GRUB_UTIL
+  /* Determine sectors available for embedding.  */
+  grub_err_t (*embed) (grub_device_t device, unsigned int *nsectors,
+		       unsigned int max_nsectors,
+		       grub_embed_type_t embed_type,
+		       grub_disk_addr_t **sectors);
+
   /* Whether this filesystem reserves first sector for DOS-style boot.  */
   int reserved_first_sector;
-#endif
 
-  /* The next filesystem.  */
-  struct grub_fs *next;
+  /* Whether blocklist installs have a chance to work.  */
+  int blocklist_install;
+#endif
 };
 typedef struct grub_fs *grub_fs_t;
 
@@ -87,10 +103,24 @@ extern struct grub_fs grub_fs_blocklist;
    the linked list GRUB_FS_LIST through the function grub_fs_register.  */
 typedef int (*grub_fs_autoload_hook_t) (void);
 extern grub_fs_autoload_hook_t EXPORT_VAR(grub_fs_autoload_hook);
+extern grub_fs_t EXPORT_VAR (grub_fs_list);
 
-void EXPORT_FUNC(grub_fs_register) (grub_fs_t fs);
-void EXPORT_FUNC(grub_fs_unregister) (grub_fs_t fs);
-void EXPORT_FUNC(grub_fs_iterate) (int (*hook) (const grub_fs_t fs));
+#ifndef GRUB_LST_GENERATOR
+static inline void
+grub_fs_register (grub_fs_t fs)
+{
+  grub_list_push (GRUB_AS_LIST_P (&grub_fs_list), GRUB_AS_LIST (fs));
+}
+#endif
+
+static inline void
+grub_fs_unregister (grub_fs_t fs)
+{
+  grub_list_remove (GRUB_AS_LIST (fs));
+}
+
+#define FOR_FILESYSTEMS(var) FOR_LIST_ELEMENTS((var), (grub_fs_list))
+
 grub_fs_t EXPORT_FUNC(grub_fs_probe) (grub_device_t device);
 
 #endif /* ! GRUB_FS_HEADER */
