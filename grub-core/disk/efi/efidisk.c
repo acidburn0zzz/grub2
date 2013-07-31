@@ -26,6 +26,7 @@
 #include <grub/efi/api.h>
 #include <grub/efi/efi.h>
 #include <grub/efi/disk.h>
+#include <grub/env.h>
 
 struct grub_efidisk_data
 {
@@ -892,6 +893,46 @@ grub_efidisk_get_device_name (grub_efi_handle_t *handle)
 				     ctx.partition_name);
 	  grub_free (ctx.partition_name);
 	}
+
+      {
+	// This block is a temporary workaround used by Chrome OS. We set
+	// some variables that we can use in the grub.cfg file to ensure that
+	// we get the kernel and rootfs from the boot device, regardless of
+	// which device that is.
+	grub_size_t tmpbuf_len = grub_strlen (parent->name) + 5;
+	char *tmpbuf = grub_malloc (tmpbuf_len);
+	if (! tmpbuf)
+	{
+	  grub_free (dev_name);
+	  grub_disk_close (parent);
+	  return 0;
+	}
+
+	grub_snprintf (tmpbuf, tmpbuf_len, "(%s,3)", parent->name);
+	grub_env_set ("grubpartA", tmpbuf);
+	grub_env_export ("grubpartA");
+	grub_snprintf (tmpbuf, tmpbuf_len, "(%s,5)", parent->name);
+	grub_env_set ("grubpartB", tmpbuf);
+	grub_env_export ("grubpartB");
+	grub_free (tmpbuf);
+
+	grub_env_set ("grubdisk", parent->name);
+	grub_env_export ("grubdisk");
+
+	// Translate hd0 to sda, hd1 to sdb, etc. parent->name is always
+	// either "fdN", "hdN", or "cdN". This trick won't work if N is > 9.
+	int index = parent->name[2] - '0';
+
+	char devname[] = "sdXN";
+	devname[2] = 'a' + index;
+	devname[3] = '3';
+	grub_env_set ("linuxpartA", devname);
+	grub_env_export ("linuxpartA");
+	devname[3] = '5';
+	grub_env_set ("linuxpartB", devname);
+	grub_env_export ("linuxpartB");
+      }
+
       grub_disk_close (parent);
 
       return dev_name;
