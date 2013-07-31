@@ -933,6 +933,11 @@ module = {
 };
 
 module = {
+  name = gptpriority;
+  common = commands/gptpriority.c;
+};
+
+module = {
   name = halt;
   nopc = commands/halt.c;
   i386_pc = commands/i386/pc/halt.c;
