@@ -6438,6 +6438,314 @@ gptsync.marker: $(gptsync_module_SOURCES) $(nodist_gptsync_module_SOURCES)
 endif
 
 if COND_emu
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_i386_pc
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_i386_efi
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_i386_qemu
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_i386_coreboot
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_i386_multiboot
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_i386_ieee1275
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_x86_64_efi
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_mips_loongson
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_sparc64_ieee1275
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_powerpc_ieee1275
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_mips_arc
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_ia64_efi
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_mips_qemu_mips
+platform_PROGRAMS += gptpriority.module
+MODULE_FILES += gptpriority.module$(EXEEXT)
+gptpriority_module_SOURCES  = commands/gptpriority.c  ## platform sources
+nodist_gptpriority_module_SOURCES  =  ## platform nodist sources
+gptpriority_module_LDADD  = 
+gptpriority_module_CFLAGS  = $(AM_CFLAGS) $(CFLAGS_MODULE) 
+gptpriority_module_LDFLAGS  = $(AM_LDFLAGS) $(LDFLAGS_MODULE) 
+gptpriority_module_CPPFLAGS  = $(AM_CPPFLAGS) $(CPPFLAGS_MODULE) 
+gptpriority_module_CCASFLAGS  = $(AM_CCASFLAGS) $(CCASFLAGS_MODULE) 
+EXTRA_DIST += 
+BUILT_SOURCES += $(nodist_gptpriority_module_SOURCES)
+CLEANFILES += $(nodist_gptpriority_module_SOURCES)
+MOD_FILES += gptpriority.mod
+MARKER_FILES += gptpriority.marker
+CLEANFILES += gptpriority.marker
+
+gptpriority.marker: $(gptpriority_module_SOURCES) $(nodist_gptpriority_module_SOURCES)
+	$(TARGET_CPP) -DGRUB_LST_GENERATOR $(CPPFLAGS_MARKER) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gptpriority_module_CPPFLAGS) $(CPPFLAGS) $^ > $@.new || (rm -f $@; exit 1)
+	grep 'MARKER' $@.new > $@; rm -f $@.new
+endif
+
+if COND_emu
 platform_PROGRAMS += halt.module
 MODULE_FILES += halt.module$(EXEEXT)
 halt_module_SOURCES  = lib/emu/halt.c commands/halt.c  ## platform sources
