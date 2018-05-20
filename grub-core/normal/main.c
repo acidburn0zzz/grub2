@@ -123,6 +123,17 @@ read_config_file (const char *config)
     }
 
   /* Try to open the config file.  */
+  /* Neverware: disable signature checking for this one file
+   * load. This is necessary because the config file is modified by
+   * postinst, so it won't have a valid signature. We prevent
+   * signature checking from being disabled in the config file, and
+   * also disable loading of new pubkeys from the config file, so an
+   * attacker cannot modify the config file to compromise signature
+   * checking.
+   *
+   * Signature checking is automatically re-enabled by grub_file_open
+   * after this one file is loaded. */
+  grub_file_filter_disable_pubkey ();
   rawfile = grub_file_open (config);
   if (! rawfile)
     return 0;
@@ -427,6 +438,9 @@ void
 grub_cmdline_run (int nested, int force_auth)
 {
   grub_err_t err = GRUB_ERR_NONE;
+
+  /* Neverware: prevent access to the command line */
+  return;
 
   do
     {

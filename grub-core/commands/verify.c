@@ -670,6 +670,7 @@ grub_verify_signature (grub_file_t f, grub_file_t sig,
   return grub_verify_signature_real (0, 0, f, sig, pkey);
 }
 
+#if 0
 static grub_err_t
 grub_cmd_trust (grub_extcmd_context_t ctxt,
 		int argc, char **args)
@@ -699,6 +700,7 @@ grub_cmd_trust (grub_extcmd_context_t ctxt,
 
   return GRUB_ERR_NONE;
 }
+#endif
 
 static grub_err_t
 grub_cmd_list (grub_command_t cmd  __attribute__ ((unused)),
@@ -813,7 +815,7 @@ grub_cmd_verify_signature (grub_extcmd_context_t ctxt,
   return err;
 }
 
-static int sec = 0;
+static int sec = 1;
 
 static void
 verified_free (grub_verified_t verified)
@@ -946,6 +948,7 @@ grub_pubkey_open (grub_file_t io, const char *filename)
   return ret;
 }
 
+#if 0
 static char *
 grub_env_write_sec (struct grub_env_var *var __attribute__ ((unused)),
 		    const char *val)
@@ -953,6 +956,7 @@ grub_env_write_sec (struct grub_env_var *var __attribute__ ((unused)),
   sec = (*val == '1') || (*val == 'e');
   return grub_strdup (sec ? "enforce" : "no");
 }
+#endif
 
 static grub_ssize_t 
 pseudo_read (struct grub_file *file, char *buf, grub_size_t len)
@@ -970,23 +974,30 @@ struct grub_fs pseudo_fs =
 };
 
 
-static grub_extcmd_t cmd, cmd_trust;
+static grub_extcmd_t cmd;
 static grub_command_t cmd_distrust, cmd_list;
 
 GRUB_MOD_INIT(verify)
 {
+#if 0
   const char *val;
+#endif
   struct grub_module_header *header;
 
+#if 0
   val = grub_env_get ("check_signatures");
   if (val && (val[0] == '1' || val[0] == 'e'))
     sec = 1;
   else
     sec = 0;
+#endif
     
   grub_file_filter_register (GRUB_FILE_FILTER_PUBKEY, grub_pubkey_open);
 
+#if 0
   grub_register_variable_hook ("check_signatures", 0, grub_env_write_sec);
+#endif
+
   grub_env_export ("check_signatures");
 
   grub_pk_trusted = 0;
@@ -1013,17 +1024,25 @@ GRUB_MOD_INIT(verify)
     grub_pk_trusted = pk;
   }
 
+#if 0
   if (!val)
     grub_env_set ("check_signatures", grub_pk_trusted ? "enforce" : "no");
+#else
+  /* Neverware: enable signature checks if the grub image was built
+   * with a public key */
+  sec = grub_pk_trusted ? 1 : 0;
+#endif
 
   cmd = grub_register_extcmd ("verify_detached", grub_cmd_verify_signature, 0,
 			      N_("[-s|--skip-sig] FILE SIGNATURE_FILE [PUBKEY_FILE]"),
 			      N_("Verify detached signature."),
 			      options);
+#if 0
   cmd_trust = grub_register_extcmd ("trust", grub_cmd_trust, 0,
 				     N_("[-s|--skip-sig] PUBKEY_FILE"),
 				     N_("Add PUBKEY_FILE to trusted keys."),
 				     options);
+#endif
   cmd_list = grub_register_command ("list_trusted", grub_cmd_list,
 				    0,
 				    N_("Show the list of trusted keys."));
@@ -1036,7 +1055,9 @@ GRUB_MOD_FINI(verify)
 {
   grub_file_filter_unregister (GRUB_FILE_FILTER_PUBKEY);
   grub_unregister_extcmd (cmd);
+#if 0
   grub_unregister_extcmd (cmd_trust);
+#endif
   grub_unregister_command (cmd_list);
   grub_unregister_command (cmd_distrust);
 }
