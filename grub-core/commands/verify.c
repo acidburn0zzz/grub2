@@ -974,16 +974,18 @@ struct grub_fs pseudo_fs =
 };
 
 
-static grub_extcmd_t cmd, cmd_trust;
+static grub_extcmd_t cmd;
 static grub_command_t cmd_distrust, cmd_list;
 
 GRUB_MOD_INIT(verify)
 {
+#if 0
   const char *val;
+#endif
   struct grub_module_header *header;
 
-  val = grub_env_get ("check_signatures");
 #if 0
+  val = grub_env_get ("check_signatures");
   if (val && (val[0] == '1' || val[0] == 'e'))
     sec = 1;
   else
