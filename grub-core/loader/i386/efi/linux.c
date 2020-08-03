@@ -101,8 +101,11 @@ kernel_alloc(grub_efi_uintn_t size, const char * const errmsg)
 	continue;
 
       pages = BYTES_TO_PAGES(size);
+      /* Neverware: disable debug print to fix warning */
+#if 0
       grub_dprintf ("linux", "Trying to allocate %lu pages from %p\n",
 		    pages, (void *)max);
+#endif
 
       prev_max = max;
       addr = grub_efi_allocate_pages_real (max, pages,
@@ -392,11 +395,14 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_memset (params, 0, sizeof(*params));
 
   setup_header_end_offset = *((grub_uint8_t *)kernel + 0x201);
+/* Neverware: disable debug print to fix warning */
+#if 0
   grub_dprintf ("linux", "copying %lu bytes from %p to %p\n",
 		MIN((grub_size_t)0x202+setup_header_end_offset,
 		    sizeof (*params)) - 0x1f1,
 		(grub_uint8_t *)kernel + 0x1f1,
 		(grub_uint8_t *)params + 0x1f1);
+#endif
   grub_memcpy ((grub_uint8_t *)params + 0x1f1,
 	       (grub_uint8_t *)kernel + 0x1f1,
 		MIN((grub_size_t)0x202+setup_header_end_offset,sizeof (*params)) - 0x1f1);
