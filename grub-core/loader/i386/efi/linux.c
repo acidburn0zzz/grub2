@@ -389,12 +389,15 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
   grub_memset (params, 0, sizeof(*params));
 
   setup_header_end_offset = *((grub_uint8_t *)kernel + 0x201);
+/* Neverware: disable debug print to fix warning */
+#if 0
   grub_dprintf ("linux", "copying %lu bytes from %p to %p\n",
 		(unsigned long)
 		MIN((grub_size_t)0x202+setup_header_end_offset,
 		    sizeof (*params)) - 0x1f1,
 		(grub_uint8_t *)kernel + 0x1f1,
 		(grub_uint8_t *)params + 0x1f1);
+#endif
   grub_memcpy ((grub_uint8_t *)params + 0x1f1,
 	       (grub_uint8_t *)kernel + 0x1f1,
 		MIN((grub_size_t)0x202+setup_header_end_offset,sizeof (*params)) - 0x1f1);
