@@ -567,13 +567,7 @@ grub_install_make_image_wrap_file (const char *dir, const char *prefix,
 		  dir, prefix,
 		  outname, dtb ? : "", sbat ? : "", mkimage_target,
 		  compnames[compression], note ? "--note" : "",
-		  disable_shim_lock ? "--disable-shim-lock" : "",
-		  "--format '%s' --compression '%s' "
-		  "--appended-signature-size %zu %s %s\n",
-		  dir, prefix,
-		  outname, dtb ? : "", mkimage_target,
-		  compnames[compression], appsig_size,
-		  note ? "--note" : "", s);
+		  disable_shim_lock ? "--disable-shim-lock" : "", s);
   free (s);
 
   tgt = grub_install_get_image_target (mkimage_target);
