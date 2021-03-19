@@ -562,8 +562,11 @@ typedef grub_efi_uintn_t grub_efi_status_t;
 #define PRIxGRUB_EFI_STATUS "lx"
 #define PRIdGRUB_EFI_STATUS "ld"
 #else
-#define PRIxGRUB_EFI_STATUS "llx"
-#define PRIdGRUB_EFI_STATUS "lld"
+/* Neverware: upstream has these as llx and lld, but that produces a
+ * warning on 32-bit builds because grub_efi_status_t is a uint64_t on
+ * 64-bit but a uint32_t on 32-bit. */
+#define PRIxGRUB_EFI_STATUS "x"
+#define PRIdGRUB_EFI_STATUS "d"
 #endif
 
 #define GRUB_EFI_ERROR_CODE(value)	\
