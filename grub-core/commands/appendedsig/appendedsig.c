@@ -329,7 +329,7 @@ grub_cmd_verify_signature (grub_command_t cmd __attribute__((unused)),
   data = grub_malloc (file_size);
   if (!data)
     return grub_error (GRUB_ERR_OUT_OF_MEMORY,
-		       N_("Could not allocate data buffer size "
+		       N_("Could not allocate data buffer size %"
 		       PRIuGRUB_UINT64_T " for verification"), file_size);
 
   while (total_read_size < file_size)
@@ -402,7 +402,7 @@ grub_cmd_distrust (grub_command_t cmd __attribute__((unused)),
     }
 
   return grub_error (GRUB_ERR_BAD_ARGUMENT,
-		     N_("No certificate number %d found - only %d certificates in the store"),
+		     N_("No certificate number %ld found - only %ld certificates in the store"),
 		     cert_num, i - 1);
 }
 
