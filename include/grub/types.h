@@ -93,13 +93,6 @@ typedef long			grub_int64_t;
 typedef long long		grub_int64_t;
 #endif
 
-// TODO
-#if GRUB_CPU_SIZEOF_LONG == 8
-# define PRIuULONG  "ld"
-#else
-# define PRIuULONG  "d"
-#endif
-
 typedef unsigned char		grub_uint8_t;
 typedef unsigned short		grub_uint16_t;
 typedef unsigned		grub_uint32_t;
