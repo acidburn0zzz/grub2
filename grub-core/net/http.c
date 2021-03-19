@@ -16,6 +16,7 @@
  *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <grub/env.h>
 #include <grub/misc.h>
 #include <grub/net/tcp.h>
 #include <grub/net/ip.h>
